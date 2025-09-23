@@ -1,0 +1,38 @@
+.form {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 24px;
+}
+
+.field {
+    padding: 16px 12px;
+    border: 1px solid green;
+    border-radius: 16px;
+}
+
+.create-button {
+    padding: 16px 64px;
+    background-color: blueviolet;
+    color: white;
+    border-radius: 20px;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+}
+
+.text-content {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+}
+
+.grab-symbol {
+    cursor: grab;
+    display: inline-block;
+    color: red;
+    font-size: 48px;
+    z-index: 999;
+}
