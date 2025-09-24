@@ -1,3 +1,4 @@
+import { moveAt } from "../coordinatesCalc/coordinatesCalc.js";
 import { body, form, textParagraph, inputField } from "../elements/elements.js";
 
 export function handleSubmit(e) {
@@ -22,37 +23,41 @@ export function handleSubmit(e) {
 }
 
 export function handleMouseDown(e) {
-    
-
     const letterA = e.target;
-    if (!letterA || letterA.tagName !== 'SPAN') return;
+
+    if (!letterA || letterA.tagName !== 'SPAN') 
+        {
+            return
+        };
 
     const rectA = letterA.getBoundingClientRect();
     const offsetX = e.clientX - rectA.left;
     const offsetY = e.clientY - rectA.top;
 
     letterA.style.position = 'absolute';
-    letterA.style.zIndex = 1000;
+    letterA.style.zIndex = 999;
     document.body.append(letterA);
 
-    moveAt(e.pageX, e.pageY);
-
-    function moveAt(pageX, pageY) {
-        letterA.style.left = pageX - offsetX + 'px';
-        letterA.style.top = pageY - offsetY + 'px';
-    }
+    const { left, top } = moveAt(e.pageX, e.pageY, offsetX, offsetY);
 
     function onMouseMove(e) {
-        moveAt(e.pageX, e.pageY);
+        const { left, top } = moveAt(e.pageX, e.pageY, offsetX, offsetY);
+
+        letterA.style.left = left
+        letterA.style.top = top
     }
+    
+    letterA.style.left = left
+    letterA.style.top = top
+
 
     document.addEventListener('mousemove', onMouseMove);
 
-    document.addEventListener('mouseup', function onMouseUp(ev) {
+    document.addEventListener('mouseup', function onMouseUp(e) {
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
 
-        const elemBelow = document.elementFromPoint(ev.clientX, ev.clientY);
+        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
 
         if (elemBelow && elemBelow.tagName === 'SPAN' && elemBelow !== letterA) {
         const rectB = elemBelow.getBoundingClientRect();
