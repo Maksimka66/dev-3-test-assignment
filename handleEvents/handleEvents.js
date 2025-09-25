@@ -1,74 +1,70 @@
 import { moveAt } from "../coordinatesCalc/coordinatesCalc.js";
-import { body, form, textParagraph, inputField } from "../elements/elements.js";
+import { body, form, inputField, textParagraph } from "../elements/elements.js";
+
+let draggedLetter = null;
+let offsetX = 0;
+let offsetY = 0;
 
 export function handleSubmit(e) {
-    
-        e.preventDefault()
+    e.preventDefault();
 
-        body.querySelectorAll('.grab-symbol').forEach(span => span.remove());
-        
-        textParagraph.innerHTML = ''
-        
-        inputField.value.split('').forEach(letter=> {
-            const spanElem = document.createElement('span')
+    body.querySelectorAll('.grab-symbol').forEach(span => span.remove());
+    textParagraph.innerHTML = '';
 
-            spanElem.textContent = letter
-            spanElem.classList.add('grab-symbol')
+    inputField.value.split('').forEach(letter => {
+        const spanElem = document.createElement('span');
+        spanElem.textContent = letter;
+        spanElem.classList.add('grab-symbol');
+        textParagraph.appendChild(spanElem);
+    });
 
-            textParagraph.appendChild(spanElem)
-        })
-        
-        form.reset()
-     
+    form.reset();
 }
 
 export function handleMouseDown(e) {
-    const letterA = e.target;
+    const target = e.target;
+    if (!target || target.tagName !== 'SPAN') return;
 
-    if (!letterA || letterA.tagName !== 'SPAN') 
-        {
-            return
-        };
+    draggedLetter = target;
 
-    const rectA = letterA.getBoundingClientRect();
-    const offsetX = e.clientX - rectA.left;
-    const offsetY = e.clientY - rectA.top;
+    const rect = draggedLetter.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
 
-    letterA.style.position = 'absolute';
-    letterA.style.zIndex = 999;
-    document.body.append(letterA);
+    draggedLetter.style.position = 'absolute';
+    draggedLetter.style.zIndex = 999;
+    document.body.append(draggedLetter);
 
-    const { left, top } = moveAt(e.pageX, e.pageY, offsetX, offsetY);
+    const pos = moveAt(e.pageX, e.pageY, offsetX, offsetY);
+    draggedLetter.style.left = pos.left;
+    draggedLetter.style.top = pos.top;
+}
 
-    function onMouseMove(e) {
-        const { left, top } = moveAt(e.pageX, e.pageY, offsetX, offsetY);
+export function handleMouseMove(e) {
+    if (!draggedLetter) return;
 
-        letterA.style.left = left
-        letterA.style.top = top
+    const pos = moveAt(e.pageX, e.pageY, offsetX, offsetY);
+    draggedLetter.style.left = pos.left;
+    draggedLetter.style.top = pos.top;
+}
+
+export function handleMouseUp(e) {
+    if (!draggedLetter) return;
+
+    // временно скрываем перетаскиваемый элемент, чтобы elementFromPoint вернул букву под ним
+    draggedLetter.style.display = 'none';
+    let target = document.elementFromPoint(e.clientX, e.clientY);
+    draggedLetter.style.display = '';
+
+    // проверяем, что target — спан из textParagraph
+    if (target && target.tagName === 'SPAN' && target !== draggedLetter && textParagraph.contains(target)) {
+        // меняем текст местами
+        const temp = target.textContent;
+        target.textContent = draggedLetter.textContent;
+        draggedLetter.textContent = temp;
     }
-    
-    letterA.style.left = left
-    letterA.style.top = top
 
-
-    document.addEventListener('mousemove', onMouseMove);
-
-    document.addEventListener('mouseup', function onMouseUp(e) {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-
-        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-
-        if (elemBelow && elemBelow.tagName === 'SPAN' && elemBelow !== letterA) {
-        const rectB = elemBelow.getBoundingClientRect();
-
-        letterA.style.left = rectB.left + window.scrollX + 'px';
-        letterA.style.top = rectB.top + window.scrollY + 'px';
-
-        elemBelow.style.position = 'absolute';
-        elemBelow.style.left = rectA.left + window.scrollX + 'px';
-        elemBelow.style.top = rectA.top + window.scrollY + 'px';
-        }
-    })
-    
+    // оставляем букву там, куда её перенесли
+    draggedLetter.style.zIndex = '';
+    draggedLetter = null;
 }
